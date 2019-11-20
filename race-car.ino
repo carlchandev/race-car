@@ -11,7 +11,7 @@
 const int frequency = 5000;
 const int resolution = 8;
 const int fullSpeedValue = 255; // 0-255
-const int slowSpeedValue = 150; // 0-255
+const int slowSpeedValue = 180; // 0-255
 const int stopSpeedValue = 0; // 0-255
 
 const int leftWheelsSwitch = 33;
@@ -22,7 +22,7 @@ const int rightWheelsDirection = 22;
 WebServer server(80);
 
 void handleHome() {
-  server.send(200, "text/html", "<a href='/go'>Forward</a><br/><a href='/back'>Backward</a><br/><a href='/stop'>Stop</a><br/>");
+  server.send(200, "text/html", "<a href='/go'>Forward</a><br/><a href='/back'>Backward</a><br/><a href='/stop'>Stop</a><br/><a href='/left'>Left</a><br/><a href='/right'>Right</a><br/>");
 }
 
 void handleRoot() {
@@ -60,6 +60,22 @@ void moveBackward() {
   server.send(200, "text/plain", "Back");
 }
 
+void moveLeft() {
+  ledcWrite(leftForward, slowSpeedValue);
+  ledcWrite(rightForward, fullSpeedValue);
+  ledcWrite(leftBackward, stopSpeedValue);
+  ledcWrite(rightBackward, stopSpeedValue);
+  server.send(200, "text/plain", "Left");
+}
+
+void moveRight() {
+  ledcWrite(leftForward, fullSpeedValue);
+  ledcWrite(rightForward, slowSpeedValue);
+  ledcWrite(leftBackward, stopSpeedValue);
+  ledcWrite(rightBackward, stopSpeedValue);
+  server.send(200, "text/plain", "Right");
+}
+
 void brake() {
   ledcWrite(leftForward, stopSpeedValue);
   ledcWrite(rightForward, stopSpeedValue);
@@ -90,6 +106,8 @@ void setup(void) {
   server.on("/", handleHome);
   server.on("/go", moveForward);
   server.on("/back", moveBackward);
+  server.on("/left", moveLeft);
+  server.on("/right", moveRight);
   server.on("/stop", brake);
 
   server.onNotFound(handleNotFound);
