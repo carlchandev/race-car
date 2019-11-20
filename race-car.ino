@@ -26,7 +26,7 @@
 int leftWheelsSwitcvh = 33;
 int rightWheelsSwitcvh = 23;
 
-int fullSpeedPauseInterval = 30;
+int fullSpeedPauseInterval = 0;
 int slowSpeedPauseInterval = 30;
 
 void setup() {
@@ -34,29 +34,20 @@ void setup() {
   // pinMode(LED_BUILTIN, OUTPUT);
 }
 
-void stop() {
+void stopCar() {
   pinMode(leftWheelsSwitcvh, OUTPUT);
   digitalWrite(leftWheelsSwitcvh, LOW);    // turn the LED off by making the voltage LOW
   pinMode(rightWheelsSwitcvh, OUTPUT);
   digitalWrite(rightWheelsSwitcvh, LOW);  
 }
 
-void changeSpeed(int pauseInterval) {
+// the loop function runs over and over again forever
+void changeToSlowSpeed() {
   pinMode(leftWheelsSwitcvh, OUTPUT);
   digitalWrite(leftWheelsSwitcvh, HIGH);
   pinMode(rightWheelsSwitcvh, OUTPUT);
   digitalWrite(rightWheelsSwitcvh, HIGH);
-  delay(pauseInterval);                       // wait for a second
-  pinMode(leftWheelsSwitcvh, OUTPUT);
-  digitalWrite(leftWheelsSwitcvh, LOW);    // turn the LED off by making the voltage LOW
-  pinMode(rightWheelsSwitcvh, OUTPUT);
-  digitalWrite(rightWheelsSwitcvh, LOW);    // turn the LED off by making the voltage LOW
-  delay(pauseInterval);               // wait for a second
-}
-
-// the loop function runs over and over again forever
-void changeToSlowSpeed() {
-  changeSpeed(slowSpeedPauseInterval)                     // wait for a second
+  delay(5000);
 }
 
 void changeToFullSpeed() {
@@ -64,17 +55,12 @@ void changeToFullSpeed() {
   digitalWrite(leftWheelsSwitcvh, HIGH);
   pinMode(rightWheelsSwitcvh, OUTPUT);
   digitalWrite(rightWheelsSwitcvh, HIGH);
-  delay(fullSpeedPauseInterval);                       // wait for a second
-  pinMode(leftWheelsSwitcvh, OUTPUT);
-  digitalWrite(leftWheelsSwitcvh, LOW);    // turn the LED off by making the voltage LOW
-  pinMode(rightWheelsSwitcvh, OUTPUT);
-  digitalWrite(rightWheelsSwitcvh, LOW);    // turn the LED off by making the voltage LOW
-  delay(fullSpeedPauseInterval);                       // wait for a second
+  delay(5000);
 }
 
 void loop() {
-  changeToSlowSpeed();
-  delay(5000);
   changeToFullSpeed();
-  delay(5000);
+  delay(1000);
+  changeToSlowSpeed();
+  delay(1000);
 }
