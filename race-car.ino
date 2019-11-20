@@ -1,66 +1,91 @@
-/*
-  Blink
+#include <WiFi.h>
+#include <Hash.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncElegantOTA.h>
 
-  Turns an LED on for one second, then off for one second, repeatedly.
+#define leftForward 0
+#define leftBackward 1
+#define rightForward 2
+#define rightBackward 3
 
-  Most Arduinos have an on-board LED you can control. On the UNO, MEGA and ZERO
-  it is attached to digital pin 13, on MKR1000 on pin 6. LED_BUILTIN is set to
-  the correct LED pin independent of which board is used.
-  If you want to know what pin the on-board LED is connected to on your Arduino
-  model, check the Technical Specs of your board at:
-  https://www.arduino.cc/en/Main/Products
-
-  modified 8 May 2014
-  by Scott Fitzgerald
-  modified 2 Sep 2016
-  by Arturo Guadalupi
-  modified 8 Sep 2016
-  by Colby Newman
-
-  This example code is in the public domain.
-
-  http://www.arduino.cc/en/Tutorial/Blink
-*/
+const int frequency = 5000;
+const int resolution = 8;
+const int fullSpeedValue = 255; // 0-255
+const int slowSpeedValue = 150; // 0-255
+const int stopSpeedValue = 0; // 0-255
 
 // the setup function runs once when you press reset or power the board
-int leftWheelsSwitcvh = 33;
-int rightWheelsSwitcvh = 23;
-
-int fullSpeedPauseInterval = 0;
-int slowSpeedPauseInterval = 30;
+const int leftWheelsSwitch = 33;
+const int leftWheelsDirection = 32;
+const int rightWheelsSwitch = 23;
+const int rightWheelsDirection = 22;
 
 void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  // pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/plain", "Hi! I am ESP32.");
+  });
+
+  AsyncElegantOTA.begin(server);    // Start ElegantOTA
+  server.begin();
+  Serial.println("HTTP server started");
+
+  ledcSetup(leftForward, frequency, resolution);
+  // left
+  pinMode(leftWheelsSwitch, OUTPUT);
+  pinMode(leftWheelsDirection, OUTPUT);
+  ledcAttachPin(leftWheelsSwitch, leftForward);
+  ledcAttachPin(leftWheelsDirection, leftBackward);
+  // right
+  pinMode(rightWheelsSwitch, OUTPUT);
+  pinMode(rightWheelsDirection, OUTPUT);
+  ledcAttachPin(rightWheelsSwitch, rightForward);
+  ledcAttachPin(rightWheelsDirection, rightBackward);
 }
 
-void stopCar() {
-  pinMode(leftWheelsSwitcvh, OUTPUT);
-  digitalWrite(leftWheelsSwitcvh, LOW);    // turn the LED off by making the voltage LOW
-  pinMode(rightWheelsSwitcvh, OUTPUT);
-  digitalWrite(rightWheelsSwitcvh, LOW);  
+void brake() {
+  ledcWrite(leftForward, stopSpeedValue);
+  ledcWrite(rightForward, stopSpeedValue);
+  ledcWrite(leftBackward, stopSpeedValue);
+  ledcWrite(rightBackward, stopSpeedValue);
+  delay(1000);
 }
 
-// the loop function runs over and over again forever
-void changeToSlowSpeed() {
-  pinMode(leftWheelsSwitcvh, OUTPUT);
-  digitalWrite(leftWheelsSwitcvh, HIGH);
-  pinMode(rightWheelsSwitcvh, OUTPUT);
-  digitalWrite(rightWheelsSwitcvh, HIGH);
-  delay(5000);
+void moveForward() {
+  ledcWrite(leftBackward, stopSpeedValue);
+  ledcWrite(rightBackward, stopSpeedValue);
+  ledcWrite(leftForward, fullSpeedValue);
+  ledcWrite(rightForward, fullSpeedValue);
+  delay(3000);
 }
 
-void changeToFullSpeed() {
-  pinMode(leftWheelsSwitcvh, OUTPUT);
-  digitalWrite(leftWheelsSwitcvh, HIGH);
-  pinMode(rightWheelsSwitcvh, OUTPUT);
-  digitalWrite(rightWheelsSwitcvh, HIGH);
-  delay(5000);
+void moveBackward() {
+  ledcWrite(leftForward, stopSpeedValue);
+  ledcWrite(rightForward, stopSpeedValue);
+  ledcWrite(leftBackward, fullSpeedValue);
+  ledcWrite(rightBackward, fullSpeedValue);
+  delay(3000);
 }
 
 void loop() {
-  changeToFullSpeed();
-  delay(1000);
-  changeToSlowSpeed();
-  delay(1000);
+  AsyncElegantOTA.loop();
+// moveForward();
+// moveBackward();
+   brake();
 }
