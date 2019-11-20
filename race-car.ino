@@ -109,14 +109,24 @@ void moveRight() {
   
 }
 
-void spin() {
+void spinRight() {
   m.lock();
   ledcWrite(leftForward, fullSpeedValue);
   ledcWrite(rightForward, stopSpeedValue);
   ledcWrite(leftBackward, stopSpeedValue);
   ledcWrite(rightBackward, fullSpeedValue);
   m.unlock();
-  server.send(200, "text/plain", "Stop");
+  server.send(200, "text/plain", "Spin Right");
+}
+
+void spinLeft() {
+  m.lock();
+  ledcWrite(leftForward, stopSpeedValue);
+  ledcWrite(rightForward, fullSpeedValue);
+  ledcWrite(leftBackward, fullSpeedValue);
+  ledcWrite(rightBackward, stopSpeedValue);
+  m.unlock();
+  server.send(200, "text/plain", "Spin Left");
 }
 
 void brake() {
@@ -159,7 +169,8 @@ void setup(void) {
   server.on("/backSlow", moveBackwardSlow);
   server.on("/left", moveLeft);
   server.on("/right", moveRight);
-  server.on("/spin", spin);
+  server.on("/spinRight", spinRight);
+  server.on("/spinLeft", spinLeft);
   server.on("/stop", brake);
 
   server.onNotFound(handleNotFound);
